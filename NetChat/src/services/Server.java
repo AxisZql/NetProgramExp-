@@ -185,7 +185,7 @@ public class Server {
                     JSONObject obj = JSONObject.fromObject(req);
                     String type=obj.getString("type");//获取请求类型
                     if(type==null){
-                        String resp=d2j.DefaultResp(false,"请求不合法");
+                        String resp=d2j.DefaultResp(null,false,"请求不合法");
                         out.println(resp);
                     }
                     Controller(type,out,req,_in,_out);
