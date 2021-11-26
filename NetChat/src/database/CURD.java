@@ -153,6 +153,34 @@ public class CURD {
         return null;
     }
 
+    //利用用户id获取对应用户的所有信息
+    public User GetUserByUserID(Integer userid){
+        Connection conn =ConnectDB();
+        try{
+            PreparedStatement stmt =null;
+            String sql="select * from t_user where id = ?";
+            stmt=conn.prepareStatement(sql);
+            stmt.setString(1, String.valueOf(userid));
+            ResultSet rs=stmt.executeQuery();
+            rs.next();//读取数据
+            //封装查询数据到User对象中
+            User user= new User(rs.getString("username"),rs.getString("password"),
+                    rs.getString("avatar"),rs.getInt("id"));
+            rs.close();
+            stmt.close();
+            return user;
+        } catch (SQLException e) {
+            System.out.println("不存在该用户");
+        }finally{
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println("数据库关闭失败");
+            }
+        }
+        return null;
+    }
+
     //通过群聊id获取群聊信息
     public Group getGroupById(Integer id){
         Connection conn=ConnectDB();
@@ -262,6 +290,39 @@ public class CURD {
                 stmt.setString(2,String.valueOf(receive));
             }
             assert stmt != null;
+            ResultSet rs=stmt.executeQuery();
+            while(rs.next()){
+                Chat chat = new Chat(rs.getInt("id"),rs.getInt("status"),rs.getInt("created_by"),rs.getInt("receive"),
+                        rs.getString("content"),rs.getInt("type"),rs.getString("object_type"),
+                        rs.getString("fileName"),rs.getDate("created_at"));
+                chatList.add(chat);
+            }
+            rs.close();
+            stmt.close();
+            return chatList;
+        } catch (SQLException e) {
+            System.out.println("无法查询该用户的对应聊天记录");
+        }finally{
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println("数据库关闭失败");
+            }
+        }
+        return null;
+    }
+
+    //根据用户名获取所有在该用户离线状态下未接收的聊天记录
+    public List<Chat> getUreadChatList(Integer receive){
+        Connection conn=ConnectDB();
+        try{
+            PreparedStatement stmt=null;
+            List<Chat> chatList=new ArrayList<Chat>();
+            String sql;
+
+            sql = "select * from t_chat where recevie=? and type=1 and status=0 order by created_at asc";
+            stmt=conn.prepareStatement(sql);
+            stmt.setString(1,String.valueOf(receive));
             ResultSet rs=stmt.executeQuery();
             while(rs.next()){
                 Chat chat = new Chat(rs.getInt("id"),rs.getInt("status"),rs.getInt("created_by"),rs.getInt("receive"),

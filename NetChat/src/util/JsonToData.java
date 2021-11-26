@@ -4,6 +4,7 @@ import Object.User;
 import Object.Relation;
 import Object.Group;
 import net.sf.json.JSONObject;
+import Object.Chat;
 
 //解析json格式数据
 public class JsonToData {
@@ -49,6 +50,27 @@ public class JsonToData {
     public Group createGroup(String req){
         JSONObject obj = JSONObject.fromObject(req);
         return new Group(obj.getString("name"),obj.getInt("created_by"),obj.getString("fileName"));
+    }
+
+    //发送聊天数据请求json解析
+    public Chat SendMsgReq(String req){
+        JSONObject obj=JSONObject.fromObject(req);
+        return new Chat(obj.getInt("created_by"),obj.getInt("receive"),
+                obj.getString("content"),obj.getInt("chat_type"),obj.getString("object_type"));
+    }
+
+    //发送文件聊天请求json请求
+    public Chat SendFileMsgReq(String req){
+        JSONObject obj=JSONObject.fromObject(req);
+        return new Chat(obj.getInt("created_by"),obj.getInt("receive"),
+                obj.getString("content"),obj.getInt("chat_type"),obj.getString("object_type"),
+                obj.getString("fileName"));
+    }
+
+    //聊天记录请求json请求
+    public Chat GetChatHistoryReq(String req){
+        JSONObject obj=JSONObject.fromObject(req);
+        return new Chat(obj.getInt("created_by"),obj.getInt("receive"), obj.getInt("chat_type"));
     }
 
 

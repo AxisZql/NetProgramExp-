@@ -3,6 +3,7 @@ package services;
 
 import Object.Group;
 import Object.User;
+import Object.Chat;
 import database.CURD;
 import net.sf.json.JSONObject;
 import util.DataToJson;
@@ -15,20 +16,19 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
 
     // 记录所有连接服务器的用户名，利用哈希集合存储保证用户名唯一
-    private static final Set<String> names = new HashSet<>();
+//    private static final Set<String> names = new HashSet<>();
+    private static final Map<String,OutputStream> fileSender= new HashMap<>(); //记录用户名和输出流的对应关系
+    private static final Map<String,PrintWriter> writers = new HashMap<>();//建立用户名和字符发送流的关系
 
-    private static final Set<PrintWriter> writers = new HashSet<>();
-    private static final Set<OutputStream> fileSender = new HashSet<>();
+//    private static final Set<PrintWriter> writers = new HashSet<>();
+//    private static final Set<OutputStream> fileSender = new HashSet<>();
 
     public static void main(String[] args) throws Exception {
         System.out.println("The chat server is running...");
@@ -57,7 +57,7 @@ public class Server {
             this.socket = socket;
         }
 
-        public synchronized void Controller(String type,PrintWriter out,String req,InputStream _in,OutputStream _out){
+        public synchronized void Controller(String type,PrintWriter out,String req,InputStream _in,OutputStream _out,Scanner in ){
             JSONObject obj = JSONObject.fromObject(req);
             String resp;
             User user;
@@ -69,23 +69,12 @@ public class Server {
                 //处理注册
                 case "register" -> {
                     user = j2d.RegisterReq(req);
-                    extendName = ut.CheckAvatarFileType(user.getAvatar());
-                    if (extendName == null) {
-                        resp = d2j.DefaultResp("register",false, "不支持该头像文件格式");
-                        out.println(resp);
-                        break;
-                    }
                     //修改头像文件字段为用户名加文件扩展名
-                    user.setAvatar(user.getUsername() + "." + extendName);
                     status = curd.AddUser(user.getUsername(), user.getPassword(), user.getAvatar());
                     if (status == -1) {
                         resp = d2j.DefaultResp("register",false, "注册失败，该用户名已经存在");
                     } else {
                         resp = d2j.DefaultResp("register",true, "注册成功");
-                        if (!ut.SaveAvatarPic(user.getUsername(), extendName, _in)) {
-                            resp = d2j.DefaultResp("register",false, "服务器错误");
-                        }
-
                     }
                     out.println(resp);
                 }
@@ -97,30 +86,21 @@ public class Server {
                     if (u == null || (!u.getPassword().equals(user.getPassword()))) {
                         resp = d2j.DefaultResp("login",false, "账号或者密码错误");
                     } else {
-                        resp = d2j.getUserInfoResp(u);//登录成功
-                        writers.add(out);//将对某个客户端的输出流加入writers哈希集合中
-                        names.add(user.getUsername());//记录当前登录的用户的用户名
-                        fileSender.add(_out);
+                        resp = d2j.getUserInfoResp(u,"login");//登录成功
+                        writers.put(user.getUsername(),out);//将对某个客户端的输出流加入writers字典中
+                        fileSender.put(user.getUsername(), _out);
                     }
                     out.println(resp);
-                    if (!ut.SendAvatarPic(user.getUsername(), _out)) {
-                        resp = d2j.DefaultResp("login",false, "获取头像失败");
-                        out.println(resp);
-                    }
                 }
                 case "search_user" -> {
                     if (obj.getString("filed") == null) {
-                        resp = d2j.DefaultResp("",false, "搜索内容不能为空");
+                        resp = d2j.DefaultResp("search_user",false, "搜索内容不能为空");
                         out.println(resp);
                         break;
                     }
                     u = curd.GetUserByUsername(obj.getString("filed"));
-                    resp = d2j.getUserInfoResp(u);
+                    resp = d2j.getUserInfoResp(u,"search_user");
                     out.println(resp);
-                    if (!ut.SendAvatarPic(u.getUsername(), _out)) {
-                        resp = d2j.DefaultResp("search_user",false, "获取头像失败");
-                        out.println(resp);
-                    }
                 }
                 case "search_group" -> {
                     if (obj.getString("filed") == null) {
@@ -129,7 +109,7 @@ public class Server {
                         break;
                     }
                     g = curd.getGroupById(obj.getInt("filed"));
-                    resp = d2j.getGroupInfoResp(g);
+                    resp = d2j.getGroupInfoResp(g,"search_group");
                     out.println(resp);
                 }
                 case "add_friend" -> {
@@ -160,7 +140,114 @@ public class Server {
                     resp = d2j.DefaultResp("add_group",true, "添加群聊成功");
                     out.println(resp);
                 }
-//                case ""
+                case "create_group" ->{
+                    g=j2d.createGroup(req);
+                    status=curd.AddGroup(g.getName(),g.getAvatar(),g.getCreated_by());
+                    if (status == -1) {
+                        resp = d2j.DefaultResp("create_group",false, "已经存在同名群聊，创建群聊失败");
+                    } else {
+                        resp = d2j.DefaultResp("create_group",true, "创建群聊成功");
+                    }
+                    out.println(resp);
+
+                }
+                case "get_friend_list" ->{
+                    Integer cur_userId=Integer.valueOf((JSONObject.fromObject(req).getString("id")));
+                    List<User> ul=curd.getUserList(cur_userId);//所有好友数据
+                    if (ul==null){
+                        resp=d2j.DefaultResp("get_friend_list",true, "获取好友列表数据失败");
+                    }else{
+                        resp=d2j.getUserListResp(ul);
+                    }
+                    out.println(resp);
+                }
+                case "get_group_list" ->{
+                    Integer cur_userId=Integer.valueOf((JSONObject.fromObject(req).getString("id")));
+                    List<Group> ul=curd.getGroupList(cur_userId);//所有好友数据
+                    if (ul==null){
+                        resp=d2j.DefaultResp("get_group_list",true, "获取群聊列表数据失败");
+                    }else{
+                        resp=d2j.getGroupListResp(ul);
+                    }
+                    out.println(resp);
+                }
+                case "friend_chat"->{
+                    Chat c= j2d.SendMsgReq(req);
+                    int receiveId=c.getReceive();
+                    User pu = curd.GetUserByUserID(receiveId);
+                    //当前对应用户不在线的情况
+                    if((writers.get(pu.getUsername()))==null){
+                        c.setStatus(0);
+                    }
+                    //用户在线的情况
+                    else{
+                        c.setStatus(1);
+                    }
+                    status = curd.AddChat(c.getStatus(),c.getCreated_by(),c.getReceive(),c.getContent(),
+                            c.getType(),c.getObject_type(),c.getFileName());
+                    if(status==-1) {
+                        resp = d2j.DefaultResp("friend_chat", false, "发送消息失败");
+                    }else{
+                        resp = d2j.DefaultResp("friend_chat", true, "发送消息成功");
+                    }
+                    if(c.getStatus()==1){
+                       resp=d2j.NewMsqResp(c);
+                       writers.get(pu.getUsername()).println(resp);//将消息发送给对应用户
+                    }
+                    out.println(resp);
+                }
+                case "friend_file_chat"->{
+                    long fileLenght= Integer.parseInt(in.nextLine());//获取文件长度
+                    Chat c= j2d.SendFileMsgReq(req);
+                    int receiveId=c.getReceive();
+                    User pu = curd.GetUserByUserID(receiveId);
+                    //当前对应用户不在线的情况
+                    if((writers.get(pu.getUsername()))==null){
+                        resp = d2j.DefaultResp("friend_file_chat", false, "对方不在线无法发送文件消息");
+                        out.println(resp);
+                        break;
+                    }
+                    //用户在线的情况
+                    c.setStatus(1);
+                    status = curd.AddChat(c.getStatus(),c.getCreated_by(),c.getReceive(),c.getContent(),
+                            c.getType(),c.getObject_type(),c.getFileName());
+                    if(status==-1) {
+                        resp = d2j.DefaultResp("friend_file_chat", false, "发送消息失败");
+                    }else{
+                        resp = d2j.DefaultResp("friend_file_chat", true, "发送消息成功");
+                    }
+                    out.println(resp);
+                    if(status!=1){
+                        resp=d2j.NewMsqResp(c);
+                        writers.get(pu.getUsername()).println(resp);
+                        writers.get(pu.getUsername()).println(fileLenght);//发送文件长度
+                        int len;
+                        long l=fileLenght;
+                        byte[] fileBytes=new byte[1024];
+                        try {
+                            while (((len = _in.read(fileBytes))!=-1) && l!=0){
+                                l-=len;
+                                fileSender.get(pu.getUsername()).write(fileBytes,0,len);
+                            }
+                        }catch (IOException e){
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+                case "get_friend_chat"->{
+                    Chat c =j2d.GetChatHistoryReq(req);
+                    List<Chat> chatList =curd.getChatList(c.getCreated_by(),c.getReceive(),c.getType());
+                    if (chatList==null){
+                        resp=d2j.DefaultResp("friend_file_chat",true,"获取聊天记录失败");
+                        out.println(resp);
+                        break;
+                    }
+                    resp=d2j.ChatHistory2Json(chatList);
+                    out.println(resp);
+
+
+                }
 
 
             }
@@ -188,7 +275,7 @@ public class Server {
                         String resp=d2j.DefaultResp(null,false,"请求不合法");
                         out.println(resp);
                     }
-                    Controller(type,out,req,_in,_out);
+                    Controller(type,out,req,_in,_out,in);
                 }
 
             } catch (Exception e) {
