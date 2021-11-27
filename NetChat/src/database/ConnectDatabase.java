@@ -11,7 +11,7 @@ public class ConnectDatabase {
             Class.forName("org.sqlite.JDBC");
             conn=DriverManager.getConnection("jdbc:sqlite:src/database/chat.db");
             Statement stmt=conn.createStatement();
-            String sql="insert into t_user(username,password,avatar,nickname) values(" +
+            String sql="insert into t_user(username,password,avatar) values(" +
                     "'test001','1qaz','myavatar.jpg','DSB')";
             stmt.executeUpdate(sql);
             stmt.close();
