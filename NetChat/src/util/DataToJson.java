@@ -17,6 +17,8 @@ public class DataToJson {
         result.put("type",type);
         result.put("success", success);
         result.put("msg", msg);
+        JSONArray jsonArray = new JSONArray();
+        result.element("data",jsonArray);
         return result.toString();
     }
 
@@ -29,9 +31,9 @@ public class DataToJson {
         result.put("msg", "获取好友列表成功");
         int count = 0;
         for (User user : userlist) {
-            JSONObject u = new JSONObject();
-            u.put("id", user.getId());
-            jsonArray.add(count, u);
+//            JSONObject u = new JSONObject();
+//            u.put("id", user.getId());
+            jsonArray.add(count, user.getUsername());
             count += 1;
         }
         result.element("data", jsonArray);
@@ -85,7 +87,7 @@ public class DataToJson {
         result.put("receive",chat.getReceive());
         result.put("content",chat.getContent());
         result.put("type",chat.getType());
-        result.put("created_at",chat.getCreated_at());
+        result.put("created_at",chat.getCreated_at().toString());
         result.put("object_type",chat.getObject_type());
         result.put("fileName",chat.getFileName());
         return result;
@@ -117,9 +119,7 @@ public class DataToJson {
         result.put("msg", "获取群聊列表成功");
         int count = 0;
         for (Group group : grouplist) {
-            JSONObject u = new JSONObject();
-            u.put("id", group.getId());
-            jsonArray.add(count, u);
+            jsonArray.add(count, group.getId());
             count += 1;
         }
         result.element("data", jsonArray);
@@ -157,7 +157,7 @@ public class DataToJson {
             u.put("receive",chat.getReceive());
             u.put("content",chat.getContent());
             u.put("type",chat.getType());
-            u.put("created_at",chat.getCreated_at());
+            u.put("created_at",chat.getCreated_at().toString());
             u.put("object_type",chat.getObject_type());
             u.put("fileName",chat.getFileName());
             jsonArray.add(count, u);
@@ -169,6 +169,8 @@ public class DataToJson {
 
     //新消息通知
     public String NewMsqResp(Chat chat){
+        CURD curd=new CURD();
+        User user=curd.GetUserByUserID(chat.getCreated_by());
         JSONObject result = new JSONObject();
         JSONArray jsonArray = new JSONArray();
         result.put("type","new_msg");
@@ -176,17 +178,16 @@ public class DataToJson {
         result.put("msg", "收到新消息");
         JSONObject u = new JSONObject();
         u.put("id", chat.getId());
+        u.put("created_by_user",user.getUsername());
         u.put("created_by", chat.getCreated_by());
         u.put("receive",chat.getReceive());
         u.put("content",chat.getContent());
         u.put("type",chat.getType());
-        u.put("created_at",chat.getCreated_at());
+        u.put("created_at",chat.getCreated_at().toString());
         u.put("object_type",chat.getObject_type());
         u.put("fileName",chat.getFileName());
         jsonArray.add(0, u);
         result.element("data", jsonArray);
         return result.toString();
     }
-
-
 }

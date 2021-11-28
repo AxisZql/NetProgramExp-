@@ -10,6 +10,10 @@ public class User {
         this.avatar = avatar;
     }
 
+    public  void setId(Integer id){
+        this.id=id;
+    }
+
     private String avatar;
 
     public User(String u, String p, String a, Integer id) {

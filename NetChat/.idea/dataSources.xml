@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="chat" uuid="9395a0ad-01e2-471f-93c3-2649767036cc">
+    <data-source source="LOCAL" name="chat [2]" uuid="5b6d73d9-60dd-453d-bc38-7abcfa3d325c">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:D:\DesktopMy\grade-Three\NetChat\src\database\chat.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:C:\Users\mifei\Desktop\git-net-exp\NetProgramExp-\NetChat\src\database\chat.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
       <libraries>
         <library>
