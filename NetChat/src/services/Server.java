@@ -116,7 +116,11 @@ public class Server {
                         break;
                     }
                     g = curd.getGroupById(obj.getInt("filed"));
-                    resp = d2j.getGroupInfoResp(g, "search_group");
+                    if(g==null){
+                        resp = d2j.DefaultResp("search_group", false, "不存在该群聊");
+                    }else{
+                        resp = d2j.getGroupInfoResp(g, "search_group");
+                    }
                     out.println(resp);
                 }
                 case "add_friend" -> {
