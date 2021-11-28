@@ -79,7 +79,7 @@ public class DataToJson {
     //将聊天记录转json格式对象
     public JSONObject Chat2Json(Chat chat){
         CURD curd= new CURD();
-        User user=curd.GetUserByUserID(chat.getReceive());
+        User user=curd.GetUserByUserID(chat.getCreated_by());
         JSONObject result=new JSONObject();
         result.put("id",chat.getId());
         result.put("created_by_user",user.getUsername());
