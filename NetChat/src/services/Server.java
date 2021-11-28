@@ -26,6 +26,7 @@ public class Server {
 //    private static final Set<String> names = new HashSet<>();
     private static final Map<String, OutputStream> fileSender = new HashMap<>(); //记录用户名和输出流的对应关系
     private static final Map<String, PrintWriter> writers = new HashMap<>();//建立用户名和字符发送流的关系
+    private static final Map<String,Scanner> receives=new HashMap<>();
 
 //    private static final Set<PrintWriter> writers = new HashSet<>();
 //    private static final Set<OutputStream> fileSender = new HashSet<>();
@@ -89,6 +90,7 @@ public class Server {
                         resp = d2j.getUserInfoResp(u, "login");//登录成功
                         writers.put(user.getUsername(), out);//将对某个客户端的输出流加入writers字典中
                         fileSender.put(user.getUsername(), _out);
+                        receives.put(user.getUsername(),in);
                         cur_user=user;
                     }
                     out.println(resp);
@@ -249,7 +251,7 @@ public class Server {
                         resp = d2j.DefaultResp("friend_file_chat", true, "发送消息成功");
                     }
                     out.println(resp);
-                    if(status!=-1&&c.getType()==1) {
+                    if (status != -1 && c.getType() == 1) {
                         cur_user = curd.GetUserByUsername(cur_user.getUsername());
                         c = curd.getChat(cur_user.getId(), c.getReceive());
                         User pu = curd.GetUserByUserID(c.getReceive());
@@ -257,47 +259,63 @@ public class Server {
                         if ((writers.get(pu.getUsername())) != null) {
                             writers.get(pu.getUsername()).println(resp);
                             writers.get(pu.getUsername()).println(fileLenght);//发送文件长度
+//                            String tag =receives.get(pu.getUsername()).nextLine();
+//                            System.out.println(tag);
                             int len;
                             long l = fileLenght;
-                            byte[] fileBytes = new byte[1024];
+                            byte[] fileBytes = new byte[10240];
+                            System.out.println("开始发送文件");
                             try {
-                                while ( l != 0) {
+                                while (l != 0) {
                                     len = _in.read(fileBytes);
+                                    wait(500);
                                     l -= len;
                                     fileSender.get(pu.getUsername()).write(fileBytes, 0, len);
+//                                    wait();
+
                                 }
-                            } catch (IOException e) {
+//                                fileSender.get(pu.getUsername()).flush();
+                            } catch (IOException | InterruptedException e) {
                                 e.printStackTrace();
                             }
+                            System.out.println("文件发送完毕");
                         }
                     }
-                    if (status != -1 && c.getType()==0) {
-                        cur_user=curd.GetUserByUsername(cur_user.getUsername());
-                        c=curd.getChat(cur_user.getId(),c.getReceive());
-                        List<User> gul=curd.GetUserListByGroupID(c.getReceive());
+                    if (status != -1 && c.getType() == 0) {
+                        cur_user = curd.GetUserByUsername(cur_user.getUsername());
+                        c = curd.getChat(cur_user.getId(), c.getReceive());
+                        List<User> gul = curd.GetUserListByGroupID(c.getReceive());
                         resp = d2j.NewMsqResp(c);
-                        for(User pu:gul) {
-                            if(!Objects.equals(pu.getUsername(), cur_user.getUsername()) &&(writers.get(pu.getUsername()))!=null) {
+                        //通知用户接收文件
+                        for (User pu : gul) {
+                            if (!Objects.equals(pu.getUsername(), cur_user.getUsername()) && (writers.get(pu.getUsername())) != null) {
                                 writers.get(pu.getUsername()).println(resp);
                                 writers.get(pu.getUsername()).println(fileLenght);//发送文件长度
-                                int len;
-                                long l = fileLenght;
-                                byte[] fileBytes = new byte[1024];
-                                try {
-                                    while (l != 0) {
-                                        len = _in.read(fileBytes);
-                                        l -= len;
-                                        fileSender.get(pu.getUsername()).write(fileBytes, 0, len);
-                                    }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
                             }
                         }
-                    }
+                        int len;
+                        long l = fileLenght;
+                        byte[] fileBytes = new byte[10240];
+                        System.out.println("开始发送文件");
+                        try {
+                            while (l != 0) {
+                                len = _in.read(fileBytes);
+                                wait(500);
+                                l -= len;
+                                for (User pu : gul) {
+                                    if (!Objects.equals(pu.getUsername(), cur_user.getUsername()) && (writers.get(pu.getUsername())) != null) {
+                                        fileSender.get(pu.getUsername()).write(fileBytes, 0, len);
+                                    }
+                                }
 
+                            }
+                        } catch (IOException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
-                case "get_friend_chat" -> {
+
+                    case "get_friend_chat" -> {
                     Chat c = j2d.GetChatHistoryReq(req);
                     List<Chat> chatList = curd.getChatList(c.getCreated_by(), c.getReceive(), c.getType());
                     if (chatList == null) {
