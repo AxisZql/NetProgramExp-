@@ -102,7 +102,11 @@ public class Server {
                         break;
                     }
                     u = curd.GetUserByUsername(obj.getString("filed"));
-                    resp = d2j.getUserInfoResp(u, "search_user");
+                    if(u==null){
+                        resp = d2j.DefaultResp("search_user", false, "不存在该用户");
+                    }else {
+                        resp = d2j.getUserInfoResp(u, "search_user");
+                    }
                     out.println(resp);
                 }
                 case "search_group" -> {

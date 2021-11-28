@@ -70,6 +70,7 @@ public class DataToJson {
         int count =0;
         for (Chat chat:chatList){
             JSONObject obj=Chat2Json(chat);
+            curd.UpdateChatStatus(chat.getId());
             jsonArray.add(count,obj);
             count+=1;
         }
