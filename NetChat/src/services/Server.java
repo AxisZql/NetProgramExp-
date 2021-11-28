@@ -261,7 +261,8 @@ public class Server {
                             long l = fileLenght;
                             byte[] fileBytes = new byte[1024];
                             try {
-                                while (((len = _in.read(fileBytes)) != -1) && l != 0) {
+                                while ( l != 0) {
+                                    len = _in.read(fileBytes);
                                     l -= len;
                                     fileSender.get(pu.getUsername()).write(fileBytes, 0, len);
                                 }
@@ -276,14 +277,15 @@ public class Server {
                         List<User> gul=curd.GetUserListByGroupID(c.getReceive());
                         resp = d2j.NewMsqResp(c);
                         for(User pu:gul) {
-                            if((writers.get(pu.getUsername()))!=null) {
+                            if(!Objects.equals(pu.getUsername(), cur_user.getUsername()) &&(writers.get(pu.getUsername()))!=null) {
                                 writers.get(pu.getUsername()).println(resp);
                                 writers.get(pu.getUsername()).println(fileLenght);//发送文件长度
                                 int len;
                                 long l = fileLenght;
                                 byte[] fileBytes = new byte[1024];
                                 try {
-                                    while (((len = _in.read(fileBytes)) != -1) && l != 0) {
+                                    while (l != 0) {
+                                        len = _in.read(fileBytes);
                                         l -= len;
                                         fileSender.get(pu.getUsername()).write(fileBytes, 0, len);
                                     }
