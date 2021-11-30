@@ -6,7 +6,12 @@ import Object.Group;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * author：李志强
+ * class：网络194
+ * date：2021-11-24
+ * 注：本项目github：https://github.com/AxisZql/NetProgramExp-
+ */
 /*
 数据库操作函数
  */

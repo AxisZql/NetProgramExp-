@@ -1,6 +1,12 @@
 package util;
 
 import java.io.*;
+/**
+ * author：李志强
+ * class：网络194
+ * date：2021-11-24
+ * 注：本项目github：https://github.com/AxisZql/NetProgramExp-
+ */
 
 public class Utils {
 

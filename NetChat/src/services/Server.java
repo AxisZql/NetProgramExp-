@@ -20,16 +20,19 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * author：李志强
+ * class：网络194
+ * date：2021-11-24
+ * 注：本项目github：https://github.com/AxisZql/NetProgramExp-
+*/
+
 public class Server {
 
     // 记录所有连接服务器的用户名，利用哈希集合存储保证用户名唯一
-//    private static final Set<String> names = new HashSet<>();
     private static final Map<String, OutputStream> fileSender = new HashMap<>(); //记录用户名和输出流的对应关系
     private static final Map<String, PrintWriter> writers = new HashMap<>();//建立用户名和字符发送流的关系
-    private static final Map<String,Scanner> receives=new HashMap<>();
 
-//    private static final Set<PrintWriter> writers = new HashSet<>();
-//    private static final Set<OutputStream> fileSender = new HashSet<>();
 
     public static void main(String[] args) throws Exception {
         System.out.println("The chat server is running...");
@@ -90,8 +93,7 @@ public class Server {
                         resp = d2j.getUserInfoResp(u, "login");//登录成功
                         writers.put(user.getUsername(), out);//将对某个客户端的输出流加入writers字典中
                         fileSender.put(user.getUsername(), _out);
-                        receives.put(user.getUsername(),in);
-                        cur_user=user;
+                        cur_user = user;
                     }
                     out.println(resp);
                 }
@@ -102,9 +104,9 @@ public class Server {
                         break;
                     }
                     u = curd.GetUserByUsername(obj.getString("filed"));
-                    if(u==null){
+                    if (u == null) {
                         resp = d2j.DefaultResp("search_user", false, "不存在该用户");
-                    }else {
+                    } else {
                         resp = d2j.getUserInfoResp(u, "search_user");
                     }
                     out.println(resp);
@@ -116,9 +118,9 @@ public class Server {
                         break;
                     }
                     g = curd.getGroupById(obj.getInt("filed"));
-                    if(g==null){
+                    if (g == null) {
                         resp = d2j.DefaultResp("search_group", false, "不存在该群聊");
-                    }else{
+                    } else {
                         resp = d2j.getGroupInfoResp(g, "search_group");
                     }
                     out.println(resp);
@@ -267,8 +269,6 @@ public class Server {
                         if ((writers.get(pu.getUsername())) != null) {
                             writers.get(pu.getUsername()).println(resp);
                             writers.get(pu.getUsername()).println(fileLenght);//发送文件长度
-//                            String tag =receives.get(pu.getUsername()).nextLine();
-//                            System.out.println(tag);
                             int len;
                             long l = fileLenght;
                             byte[] fileBytes = new byte[10240];
@@ -323,7 +323,7 @@ public class Server {
                     }
                 }
 
-                    case "get_friend_chat" -> {
+                case "get_friend_chat" -> {
                     Chat c = j2d.GetChatHistoryReq(req);
                     List<Chat> chatList = curd.getChatList(c.getCreated_by(), c.getReceive(), c.getType());
                     if (chatList == null) {

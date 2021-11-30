@@ -5,6 +5,12 @@ import Object.Relation;
 import Object.Group;
 import net.sf.json.JSONObject;
 import Object.Chat;
+/**
+ * author：李志强
+ * class：网络194
+ * date：2021-11-24
+ * 注：本项目github：https://github.com/AxisZql/NetProgramExp-
+ */
 
 //解析json格式数据
 public class JsonToData {

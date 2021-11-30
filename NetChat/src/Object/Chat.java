@@ -1,6 +1,12 @@
 package Object;
 
 import java.util.Date;
+/**
+ * author：李志强
+ * class：网络194
+ * date：2021-11-24
+ * 注：本项目github：https://github.com/AxisZql/NetProgramExp-
+ */
 
 //聊天记录结构体
 public class Chat {

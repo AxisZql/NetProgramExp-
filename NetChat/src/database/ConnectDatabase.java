@@ -1,6 +1,12 @@
 package database;
 
 import java.sql.*;
+/**
+ * author：李志强
+ * class：网络194
+ * date：2021-11-24
+ * 注：本项目github：https://github.com/AxisZql/NetProgramExp-
+ */
 public class ConnectDatabase {
     /*
     @测试程序
