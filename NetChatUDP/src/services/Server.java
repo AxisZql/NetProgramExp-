@@ -22,17 +22,13 @@ import java.util.concurrent.Executors;
 /**
  * author：李志强
  * class：网络194
- * date：2021-11-24
+ * date：2021-12-7
  * 注：本项目github：https://github.com/AxisZql/NetProgramExp-
  */
 
 public class Server {
-    // 设定同一个ip的端口使用范围未9300 -- 9900 ，用户退出后要将对应的ip和端口数据在数据库中删除
+    // 设定同一个ip的端口使用范围未9300 -- 19900 ，用户退出后要将对应的ip和端口数据在数据库中删除
     private static final Integer BPort = 9020;  //用户未登陆之前使用的端口
-    // 记录所有连接服务器的用户名，利用哈希集合存储保证用户名唯一
-    private static final Map<String, OutputStream> fileSender = new HashMap<>(); //记录用户名和输出流的对应关系
-    private static final Map<String, PrintWriter> writers = new HashMap<>();//建立用户名和字符发送流的关系
-
     private static final Map<String, String> UserHost = new HashMap<>();//建立起用户名和IP的映射
     private static final Map<String, Integer> UserPort = new HashMap<>();//建立用户和端口的映射
 
