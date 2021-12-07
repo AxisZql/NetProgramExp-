@@ -49,13 +49,13 @@ public class Server {
                 System.out.println("有人访问9020端口");
                 int _port = -1;
                 //在这里接收到后为对应的请求发送回应，并分配对应端口
-                for (int i = 9300; i <= 9900; i++) {
-                    Boolean status = curd.CheckHostPort(dp.getAddress().getHostAddress(), String.valueOf(dp.getPort()));
+                for (int i = 9300; i <= 19900; i++) {
+                    Boolean status = curd.CheckHostPort(dp.getAddress().getHostAddress(), String.valueOf(i));
                     if (status) {//对应ip的对应端口已经被同一个ip的另一个用户使用
                         continue;
                     }
                     // 如果没有被使用
-                    int _status = curd.HostPort(dp.getAddress().getHostAddress(), String.valueOf(dp.getPort()));
+                    int _status = curd.HostPort(dp.getAddress().getHostAddress(), String.valueOf(i));
                     if (_status == -1) {
                         continue;
                     }
@@ -67,6 +67,7 @@ public class Server {
                     byte[] out_buf = resp.getBytes();
                     dp = new DatagramPacket(out_buf, out_buf.length, InetAddress.getByName(dp.getAddress().getHostAddress()), BPort);
                     ds.send(dp);
+                    System.out.println(1);
                 } else {
                     continue;//如果分配端口失败则不给对应客户端任何回应
                 }
