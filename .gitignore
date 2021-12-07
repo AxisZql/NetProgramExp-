@@ -1,9 +1,9 @@
 .gitignore
 
-/NetChat/.idea
-/NetChatUDP/.idea
-/InternetExp01/.idea
+./NetChat/.idea
+./NetChatUDP/.idea
+./InternetExp01/.idea
 
-/NetChat/out
-/NetChatUDP/out
-/InternetExp01/out
+./NetChat/out
+./NetChatUDP/out
+./InternetExp01/out
