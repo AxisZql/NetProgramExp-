@@ -63,7 +63,7 @@ public class Server {
                     byte[] out_buf = resp.getBytes();
                     dp = new DatagramPacket(out_buf, out_buf.length, InetAddress.getByName(dp.getAddress().getHostAddress()), BPort);
                     ds.send(dp);
-                    System.out.println(1);
+//                    System.out.println(1);
                 } else {
                     continue;//如果分配端口失败则不给对应客户端任何回应
                 }
@@ -311,11 +311,11 @@ public class Server {
                 }
                 case "friend_file_chat" -> {
                     byte[] in_buf = new byte[1024];
-                    this.in_dp = new DatagramPacket(in_buf,in_buf.length);
+                    this.in_dp = new DatagramPacket(in_buf, in_buf.length);
                     this.ds.receive(this.in_dp);
 
                     byte[] data = this.in_dp.getData();
-                    String val = new String(data,0,this.in_dp.getLength());
+                    String val = new String(data, 0, this.in_dp.getLength());
                     long fileLenght = Integer.parseInt(val);//获取文件长度
                     Chat c = j2d.SendFileMsgReq(req);
                     int receiveId = c.getReceive();
@@ -356,27 +356,29 @@ public class Server {
                             out_buf = String.valueOf(fileLenght).getBytes(StandardCharsets.UTF_8);//发送文件长度
                             this.out_dp = new DatagramPacket(out_buf, out_buf.length, InetAddress.getByName(UserHost.get(pu.getUsername())), UserPort.get(pu.getUsername()));
                             this.ds.send(this.out_dp);
-//                            writers.get(pu.getUsername()).println(fileLenght);//发送文件长度
                             int len;
                             long l = fileLenght;
                             byte[] fileBytes = new byte[10240];
-                            this.in_dp = new DatagramPacket(fileBytes,fileBytes.length);
+                            this.in_dp = new DatagramPacket(fileBytes, fileBytes.length);
                             System.out.println("开始发送文件");
                             try {
                                 while (l != 0) {
-//                                    len = _in.read(fileBytes);
                                     this.ds.receive(this.in_dp);
                                     len = this.in_dp.getLength();
+//                                    System.out.println(len);
+//                                    System.out.println(l);
+//                                    if (len == 7571) {
+//                                        System.out.println(1);
+//                                    }
                                     wait(500);
                                     l -= len;
-//                                    fileSender.get(pu.getUsername()).write(fileBytes, 0, len);
-//                                    wait();
-                                    out_buf = this.in_dp.getData();
-                                    this.out_dp = new DatagramPacket(out_buf,out_buf.length,InetAddress.getByName(UserHost.get(pu.getUsername())), UserPort.get(pu.getUsername()));
+                                    byte[] _out_buf = this.in_dp.getData();
+                                    byte[] _data = new byte[len];
+                                    System.arraycopy(_out_buf, 0, _data, 0, len);
+                                    this.out_dp = new DatagramPacket(_data, _data.length, InetAddress.getByName(UserHost.get(pu.getUsername())), UserPort.get(pu.getUsername()));
                                     this.ds.send(out_dp);
 
                                 }
-//                                fileSender.get(pu.getUsername()).flush();
                             } catch (IOException | InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -393,10 +395,9 @@ public class Server {
                         for (User pu : gul) {
                             if (!Objects.equals(pu.getUsername(), cur_user.getUsername()) && (UserHost.get(pu.getUsername())) != null) {
                                 out_buf = resp.getBytes(StandardCharsets.UTF_8);
-                                this.out_dp = new DatagramPacket(out_buf, out_buf.length, InetAddress.getByName(UserHost.get(pu.getUsername())),UserPort.get(pu.getUsername()));
+                                this.out_dp = new DatagramPacket(out_buf, out_buf.length, InetAddress.getByName(UserHost.get(pu.getUsername())), UserPort.get(pu.getUsername()));
                                 this.ds.send(this.out_dp);
-//                                writers.get(pu.getUsername()).println(resp);
-//                                writers.get(pu.getUsername()).println(fileLenght);//发送文件长度
+
                                 out_buf = String.valueOf(fileLenght).getBytes(StandardCharsets.UTF_8);//发送文件长度
                                 this.out_dp = new DatagramPacket(out_buf, out_buf.length, InetAddress.getByName(UserHost.get(pu.getUsername())), UserPort.get(pu.getUsername()));
                                 this.ds.send(this.out_dp);
@@ -405,28 +406,31 @@ public class Server {
                         int len;
                         long l = fileLenght;
                         byte[] fileBytes = new byte[10240];
-                        this.in_dp = new DatagramPacket(fileBytes,fileBytes.length);
+                        this.in_dp = new DatagramPacket(fileBytes, fileBytes.length);
                         System.out.println("开始发送文件");
                         try {
                             while (l != 0) {
-//                                len = _in.read(fileBytes);
-
                                 this.ds.receive(this.in_dp);
                                 len = this.in_dp.getLength();
-                                wait(500);
                                 l -= len;
-                                out_buf = this.in_dp.getData();
+                                byte[] _out_buf = this.in_dp.getData();
+                                byte[] _data = new byte[len];
+
+//                                System.out.println(len);
+//                                System.out.println(l);
+
+                                System.arraycopy(_out_buf,0,_data,0,len);
                                 for (User pu : gul) {
                                     if (!Objects.equals(pu.getUsername(), cur_user.getUsername()) && (UserHost.get(pu.getUsername())) != null) {
-//                                        fileSender.get(pu.getUsername()).write(fileBytes, 0, len);
-                                        this.out_dp = new DatagramPacket(out_buf,out_buf.length,InetAddress.getByName(UserHost.get(pu.getUsername())),UserPort.get(pu.getUsername()));
+                                        this.out_dp = new DatagramPacket(_data, _data.length, InetAddress.getByName(UserHost.get(pu.getUsername())), UserPort.get(pu.getUsername()));
                                         this.ds.send(out_dp);
                                     }
 
                                 }
 
                             }
-                        } catch (IOException | InterruptedException e) {
+                            System.out.println("文件发送完毕");
+                        } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
